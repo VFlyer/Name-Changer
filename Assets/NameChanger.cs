@@ -50,6 +50,7 @@ public class NameChanger : MonoBehaviour {
         "LITERATURE"
     };
     private string GenedWord;
+    private string InitialWord;
     void Awake()
     {
         moduleId = counter++;
@@ -83,15 +84,15 @@ public class NameChanger : MonoBehaviour {
     void wordGen()
     {
         word = Rnd.Range(0, words.Length);
-        GenedWord = words[word];
-        Debug.LogFormat("[Name Changer {0}] Word chosen: {1}, which is at position {2}", moduleId, GenedWord, word+1);
+        InitialWord = words[word];
+        Debug.LogFormat("[Name Changer #{0}] Word chosen: {1}, which is at position {2}", moduleId, InitialWord, word+1);
         
     }
     void letterGen()
     {
         letter = Rnd.Range(0, 10);
-        Debug.LogFormat("[Name Changer {0}] Letter chosen: {1}", moduleId, GenedWord.ElementAt(letter));
-        netext.text = "" + GenedWord.ElementAt(letter);
+        Debug.LogFormat("[Name Changer #{0}] Letter chosen: {1}", moduleId, InitialWord.ElementAt(letter));
+        netext.text = "" + InitialWord.ElementAt(letter);
     }
     void newWord()
     {
@@ -110,7 +111,14 @@ public class NameChanger : MonoBehaviour {
     }
     void changeLetter()
     {
-        netext.text = "" + GenedWord.ElementAt(letter);
+        if (GenedWord == null)
+        {
+            netext.text = "" + InitialWord.ElementAt(letter);
+        }
+        else
+        {
+            netext.text = "" + GenedWord.ElementAt(letter);
+        }
     }
     void leftPress()
     {
@@ -178,7 +186,7 @@ public class NameChanger : MonoBehaviour {
         chosenLetter = 0;
         for (int i = 0; i < words.Length; i++)
         {
-            if (words[i] == GenedWord)
+            if (words[i] == InitialWord)
             {
                 chosenLetter = i;
                 break;
@@ -186,10 +194,10 @@ public class NameChanger : MonoBehaviour {
         }
         chosenLetter += bomb.GetIndicators().Count();
         chosenLetter %= 10;
-        chosenLetter = (chosenLetter == 0) ? 9 : chosenLetter;
-        if (GenedWord != words.ElementAt(chosenWord))
+        chosenLetter = (chosenLetter == 0) ? 1 : chosenLetter;
+        if ((GenedWord == null ? InitialWord : GenedWord) != words.ElementAt(chosenWord))
         {
-            Debug.LogFormat("[Name Changer #{0} Wrong word at position {1}!", moduleId, word+1);
+            Debug.LogFormat("[Name Changer #{0}] Wrong word at position {1}!", moduleId, word+1);
         }
         else
         {
@@ -201,7 +209,7 @@ public class NameChanger : MonoBehaviour {
         chosenWord = 0;
         for (int i = 0; i < words.Length; i++)
         {
-            if (words[i] == GenedWord)
+            if (words[i] == InitialWord)
             {
                 chosenWord = i;
                 break;
@@ -209,7 +217,7 @@ public class NameChanger : MonoBehaviour {
         }
         chosenWord += bomb.GetPortCount();
         chosenWord %= 24;
-        chosenWord = (chosenWord == 0) ? 10 : chosenWord;
+        chosenWord = (chosenWord == 0) ? 1 : chosenWord;
         Debug.LogFormat("[Name Changer #{0}] The word to choose is {1}! Which is position {2}", moduleId, words[chosenWord], chosenWord + 1);
     }
     void outOfBoundsLetter()
@@ -229,13 +237,13 @@ public class NameChanger : MonoBehaviour {
         {
             word++;
         }
-        else if (word > words.Length)
+        else if (word > words.Length-1)
         {
             word--;
         }
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} l # [Presses the left button # of times.] | !{0} r # [Presses the right button # of times.] | !{0} u # [Presses the up button # of times] | !{0} d # [Presses the left button # of times] | !{0} submit [Presses the submit button.]";
+    private readonly string TwitchHelpMessage = @"!{0} l # [Presses the left button # of times.] | !{0} r # [Presses the right button # of times.] | !{0} u # [Presses the up button # of times] | !{0} d # [Presses the down button # of times] | !{0} submit [Presses the submit button.]";
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
@@ -277,12 +285,20 @@ public class NameChanger : MonoBehaviour {
         {
             something(letter);
         }
+        else
+        {
+            Debug.LogFormat("[Name Changer #{0}] Bad command, use !{0} help to find the right commands!", moduleId);
+        }
     }
+    /*
     IEnumerator TwitchHandleForcedSolve()
     {
-        netext.text = "" + GenedWord.ElementAt(chosenLetter);
-        yield return new WaitForSeconds(0.5f);
-        something(netext.text.ElementAt(0));
         yield return null;
+        word = chosenWord+1;
+        Debug.LogFormat("[Name Changer {0}] The word is at position: {1}", moduleId, word);
+        letter = chosenLetter;
+        something(letter);
+        yield return new WaitForSeconds(0.01f);
     }
+    */
 }

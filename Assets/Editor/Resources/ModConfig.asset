@@ -18,4 +18,4 @@ MonoBehaviour:
     in a 24 word list, then press submit on a letter of a word.
   version: 1
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: 0b3acc40ea638ef4cb9144bcff8f4c01, type: 3}
+  previewImage: {fileID: 2800000, guid: 2915f6169593a034593e8280fd683709, type: 3}
