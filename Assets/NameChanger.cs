@@ -21,6 +21,7 @@ public class NameChanger : MonoBehaviour {
     private int chosenLetter = 0;
     private int chosenWord = 0;
     private int word;
+    private bool auto;
     private MeshRenderer button;
     private string[] words =
     {
@@ -69,7 +70,7 @@ public class NameChanger : MonoBehaviour {
         };
         buttons[c].OnInteract += delegate
         {
-            something(letter); return false;
+            something(word, letter); return false;
         };
         buttons[d].OnInteract += delegate
         {
@@ -147,12 +148,9 @@ public class NameChanger : MonoBehaviour {
         choseLetter();
     }
     // Update is called once per frame
-    void something(int let)
+    void something(int word, int let)
     {
-        char s = GenedWord.ElementAt(chosenLetter);
-        string t = words.ElementAt(chosenWord);
-        Debug.LogFormat("[Name Changer #{0}] Letter deleted: {1}", moduleId, s);
-        if (s == netext.text.ElementAt(0) && t == GenedWord)
+        if (auto)
         {
             correct();
             netext.text = "Good Job!";
@@ -167,7 +165,26 @@ public class NameChanger : MonoBehaviour {
         }
         else
         {
-            incorrect();
+            char s = GenedWord.ElementAt(chosenLetter);
+            string t = words.ElementAt(chosenWord);
+            Debug.LogFormat("[Name Changer #{0}] Letter deleted: {1}", moduleId, s);
+            if (s == netext.text.ElementAt(0) && t == GenedWord)
+            {
+                correct();
+                netext.text = "Good Job!";
+                netext.transform.Translate(x: 0.04f, y: 0.04f, z: 0);
+                netext.fontSize = 65;
+                buttons[0].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+                buttons[1].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+                buttons[2].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+                buttons[2].GetComponentInChildren<TextMesh>().text = "";
+                buttons[3].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+                buttons[4].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+            }
+            else
+            {
+                incorrect();
+            }
         }
     }
     void correct()
@@ -201,7 +218,10 @@ public class NameChanger : MonoBehaviour {
         }
         else
         {
-            Debug.LogFormat("[Name Changer #{0}] The letter to choose is {1}! Which is position {2}", moduleId, GenedWord[chosenLetter], chosenLetter + 1);
+            if (GenedWord == null)
+                Debug.LogFormat("[Name Changer #{0}] The letter to choose is {1}! Which is position {2}", moduleId, InitialWord[chosenLetter], chosenLetter + 1);
+            else
+                Debug.LogFormat("[Name Changer #{0}] The letter to choose is {1}! Which is position {2}", moduleId, GenedWord[chosenLetter], chosenLetter + 1);
         }
     }
     void choseWord()
@@ -243,11 +263,20 @@ public class NameChanger : MonoBehaviour {
         }
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} l # [Presses the left button # of times.] | !{0} r # [Presses the right button # of times.] | !{0} u # [Presses the up button # of times] | !{0} d # [Presses the down button # of times] | !{0} submit [Presses the submit button.]";
+    private readonly string TwitchHelpMessage = @"!{0} l # [Presses the left button # of times.] | !{0} r # [Presses the right button # of times.] | !{0} u # [Presses the up button # of times] | !{0} d # [Presses the down button # of times] | !{0} submit [Presses the submit button.] | The # must be filled!";
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
         string[] parameters = command.Split(' ');
+
+        if (parameters.Length < 2)
+        {
+            yield return "sendtochaterror Please specify what number you would like to press!";
+        }
+        else if (parameters.Length > 2)
+        {
+            yield return "sendtochaterror Too many arguements!";
+        }
         yield return null;
         if (parameters[0] == "L" || parameters[0] == "l")
         {
@@ -283,22 +312,21 @@ public class NameChanger : MonoBehaviour {
         }
         else if (parameters[0] == "submit")
         {
-            something(letter);
+            something(word, letter);
         }
         else
         {
             Debug.LogFormat("[Name Changer #{0}] Bad command, use !{0} help to find the right commands!", moduleId);
         }
     }
-    /*
     IEnumerator TwitchHandleForcedSolve()
     {
         yield return null;
-        word = chosenWord+1;
+        auto = true;
+        word = (chosenWord == 0) ? 1 : chosenWord;
         Debug.LogFormat("[Name Changer {0}] The word is at position: {1}", moduleId, word);
-        letter = chosenLetter;
-        something(letter);
+        letter = (chosenLetter == 0) ? 1 : chosenLetter;
+        something(word, letter);
         yield return new WaitForSeconds(0.01f);
     }
-    */
 }
