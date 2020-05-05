@@ -55,28 +55,23 @@ public class NameChanger : MonoBehaviour {
     void Awake()
     {
         moduleId = counter++;
-        int a = 0;
-        int b = 1;
-        int c = 2;
-        int d = 3;
-        int e = 4;
-        buttons[a].OnInteract += delegate
+        buttons[0].OnInteract += delegate
         {
             leftPress(); return false;
         };
-        buttons[b].OnInteract += delegate
+        buttons[1].OnInteract += delegate
         {
             rightPress(); return false;
         };
-        buttons[c].OnInteract += delegate
+        buttons[2].OnInteract += delegate
         {
             something(word, letter); return false;
         };
-        buttons[d].OnInteract += delegate
+        buttons[3].OnInteract += delegate
         {
             upPress(); return false;
         };
-        buttons[e].OnInteract += delegate
+        buttons[4].OnInteract += delegate
         {
             downPress(); return false;
         };
@@ -267,66 +262,70 @@ public class NameChanger : MonoBehaviour {
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
+        command.ToLower();
         string[] parameters = command.Split(' ');
 
         if (parameters.Length < 2)
         {
+            yield return null;
             yield return "sendtochaterror Please specify what number you would like to press!";
+            yield break;
         }
         else if (parameters.Length > 2)
         {
+            yield return null;
             yield return "sendtochaterror Too many arguements!";
+            yield break;
         }
-        yield return null;
-        if (parameters[0] == "L" || parameters[0] == "l")
+        if (parameters[0] == "left" || parameters[0] == "l")
         {
+            yield return null;
             for (int i = 0; i < int.Parse(parameters[1]); i++)
             {
-                leftPress();
+                buttons[0].OnInteract();
                 yield return new WaitForSeconds(0.1f);
             }
         }
-        else if (parameters[0] == "R" || parameters[0] == "r")
+        else if (parameters[0] == "right" || parameters[0] == "r")
         {
+            yield return null;
             for (int i = 0; i < int.Parse(parameters[1]); i++)
             {
-                rightPress();
+                buttons[1].OnInteract();
                 yield return new WaitForSeconds(0.1f);
             }
         }
-        else if (parameters[0] == "U" || parameters[0] == "u")
+        else if (parameters[0] == "up" || parameters[0] == "u")
         {
+            yield return null;
             for (int i = 0; i < int.Parse(parameters[1]); i++)
             {
-                upPress();
+                buttons[3].OnInteract();
                 yield return new WaitForSeconds(0.1f);
             }
         }
-        else if (parameters[0] == "D" || parameters[0] == "d")
+        else if (parameters[0] == "down" || parameters[0] == "d")
         {
+            yield return null;
             for (int i = 0; i < int.Parse(parameters[1]); i++)
             {
-                downPress();
+                buttons[4].OnInteract();
                 yield return new WaitForSeconds(0.1f);
             }
         }
         else if (parameters[0] == "submit")
         {
-            something(word, letter);
-        }
-        else
-        {
-            Debug.LogFormat("[Name Changer #{0}] Bad command, use !{0} help to find the right commands!", moduleId);
+            yield return null;
+            buttons[2].OnInteract();
         }
     }
     IEnumerator TwitchHandleForcedSolve()
     {
-        yield return null;
         auto = true;
         word = (chosenWord == 0) ? 1 : chosenWord;
         Debug.LogFormat("[Name Changer {0}] The word is at position: {1}", moduleId, word);
         letter = (chosenLetter == 0) ? 1 : chosenLetter;
-        something(word, letter);
+        buttons[2].OnInteract();
         yield return new WaitForSeconds(0.01f);
     }
 }
