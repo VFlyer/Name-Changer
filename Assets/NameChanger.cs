@@ -10,7 +10,7 @@ using Rnd = UnityEngine.Random;
 public class NameChanger : MonoBehaviour {
     public KMBombModule module;
     public KMBombInfo bomb;
-    public KMAudio audio;
+    public KMAudio MAudio;
     public KMSelectable[] buttons;
     public TextMesh netext;
 
@@ -54,27 +54,7 @@ public class NameChanger : MonoBehaviour {
     private string InitialWord;
     void Awake()
     {
-        moduleId = counter++;
-        buttons[0].OnInteract += delegate
-        {
-            leftPress(); return false;
-        };
-        buttons[1].OnInteract += delegate
-        {
-            rightPress(); return false;
-        };
-        buttons[2].OnInteract += delegate
-        {
-            something(word, letter); return false;
-        };
-        buttons[3].OnInteract += delegate
-        {
-            upPress(); return false;
-        };
-        buttons[4].OnInteract += delegate
-        {
-            downPress(); return false;
-        };
+        
     } 
 	// Use this for initialization
     void wordGen()
@@ -96,6 +76,43 @@ public class NameChanger : MonoBehaviour {
         netext.text = "" + GenedWord.ElementAt(letter);
     }
     void Start () {
+        moduleId = counter++;
+        
+        buttons[0].OnInteract += delegate
+        {
+            MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[0].transform);
+            if (!solved)
+                leftPress();
+            return false;
+        };
+        buttons[1].OnInteract += delegate
+        {
+            MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[1].transform);
+            if (!solved)
+                rightPress();
+            return false;
+        };
+        buttons[2].OnInteract += delegate
+        {
+            MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[2].transform);
+            if (!solved)
+                something(word, letter);
+            return false;
+        };
+        buttons[3].OnInteract += delegate
+        {
+            MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[3].transform);
+            if (!solved)
+                upPress();
+            return false;
+        };
+        buttons[4].OnInteract += delegate
+        {
+            MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[4].transform);
+            if (!solved)
+                downPress();
+            return false;
+        };
         module.OnActivate += activation;
 	}
 	void activation()
@@ -148,15 +165,6 @@ public class NameChanger : MonoBehaviour {
         if (auto)
         {
             correct();
-            netext.text = "Good Job!";
-            netext.transform.Translate(x: 0.04f, y: 0.04f, z: 0);
-            netext.fontSize = 65;
-            buttons[0].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-            buttons[1].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-            buttons[2].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-            buttons[2].GetComponentInChildren<TextMesh>().text = "";
-            buttons[3].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-            buttons[4].transform.Translate(x: 0, y: (float)-0.01, z: 0);
         }
         else
         {
@@ -166,15 +174,6 @@ public class NameChanger : MonoBehaviour {
             if (s == netext.text.ElementAt(0) && t == GenedWord)
             {
                 correct();
-                netext.text = "Good Job!";
-                netext.transform.Translate(x: 0.04f, y: 0.04f, z: 0);
-                netext.fontSize = 65;
-                buttons[0].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-                buttons[1].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-                buttons[2].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-                buttons[2].GetComponentInChildren<TextMesh>().text = "";
-                buttons[3].transform.Translate(x: 0, y: (float)-0.01, z: 0);
-                buttons[4].transform.Translate(x: 0, y: (float)-0.01, z: 0);
             }
             else
             {
@@ -187,6 +186,15 @@ public class NameChanger : MonoBehaviour {
         solved = true;
         module.HandlePass();
         Debug.LogFormat("[Name Changer #{0}] The letter deleted is correct!", moduleId);
+        netext.text = "Good Job!";
+        netext.transform.Translate(x: 0.04f, y: 0.04f, z: 0);
+        netext.fontSize = 65;
+        buttons[0].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+        buttons[1].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+        buttons[2].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+        buttons[2].GetComponentInChildren<TextMesh>().text = "";
+        buttons[3].transform.Translate(x: 0, y: (float)-0.01, z: 0);
+        buttons[4].transform.Translate(x: 0, y: (float)-0.01, z: 0);
     }
     void incorrect()
     {
@@ -258,11 +266,14 @@ public class NameChanger : MonoBehaviour {
         }
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} l # [Presses the left button # of times.] | !{0} r # [Presses the right button # of times.] | !{0} u # [Presses the up button # of times] | !{0} d # [Presses the down button # of times] | !{0} submit [Presses the submit button.] | The # must be filled!";
+    private readonly string TwitchHelpMessage = " \"!{0} left/right/up/down #\" to move left, right, down or up within the given letters, \"!{0} submit\" to submit the selected letter. Command is case insensitive.";
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
-        command.ToLower();
+        // Old TP Handling, case sensistive against "!# L L", "!# L R", etc. Breaks with "!# l r", "!# u d", etc...
+        /*
+        command = command.ToLower();
+        
         string[] parameters = command.Split(' ');
 
         if (parameters.Length < 2)
@@ -317,6 +328,45 @@ public class NameChanger : MonoBehaviour {
         {
             yield return null;
             buttons[2].OnInteract();
+        }
+        */
+        if (Regex.IsMatch(command, @"^(l(eft)?|r(ight)?|u(p)|d(own)?)\s\d+$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string[] splittedParts = command.Split();
+            Dictionary<char, KMSelectable> directionsToButtons = new Dictionary<char, KMSelectable>() {
+                {'l',buttons[0] },
+                {'r',buttons[1] },
+                {'u',buttons[3] },
+                {'d',buttons[4] },
+            };
+            
+            int timesToPress;
+            if (!directionsToButtons.ContainsKey(splittedParts[0].ElementAtOrDefault(0)))
+            {
+                yield return string.Format("sendtochaterror There are no buttons to press in conjunction with a specified direction.");
+                yield break;
+            }
+            KMSelectable curSelected = directionsToButtons[splittedParts[0][0]];
+            if (!int.TryParse(splittedParts[1], out timesToPress) || timesToPress <= 0 || timesToPress > 24)
+            {
+                yield return string.Format("sendtochaterror The module does not want to accept \"{0}\" as a valid number of times to press.",splittedParts[1]);
+                yield break;
+            }
+            for (int x = 0; x < timesToPress; x++)
+            {
+                yield return null;
+                curSelected.OnInteract();
+            }
+        }
+        else if (Regex.IsMatch(command, @"^submit$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            buttons[2].OnInteract();
+        }
+        else
+        {
+            yield return string.Format("sendtochaterror I do not know of a command {0} in the module, check your command for typos.",command);
+            yield break;
         }
     }
     IEnumerator TwitchHandleForcedSolve()
