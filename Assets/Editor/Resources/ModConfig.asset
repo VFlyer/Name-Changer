@@ -16,6 +16,6 @@ MonoBehaviour:
   author: Jon123276
   description: Use the arrows to change the letter in a 10-letter word and the word
     in a 24 word list, then press submit on a letter of a word.
-  version: 1
+  version: 1.1
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 2915f6169593a034593e8280fd683709, type: 3}
