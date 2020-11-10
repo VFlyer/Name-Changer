@@ -367,7 +367,7 @@ public class NameChanger : MonoBehaviour {
         else if (Regex.IsMatch(command, @"^submit$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             yield return null;
-            buttons[2].OnInteract();
+            submitBtn.OnInteract();
         }
         else if (Regex.IsMatch(command, @"^res(et|tart)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
