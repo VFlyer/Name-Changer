@@ -18,7 +18,7 @@ public class NameChanger : MonoBehaviour
     private bool solved = false;
     private int moduleId;
     private static int counter = 1;
-    private int currentLetter, currentWord, startingWord, startingLetter, chosenLetter = 0, chosenWord = 0;
+    private int currentLetter, currentWord, startingWord, startingLetter, chosenLetter = -1, chosenWord = 0;
     private bool auto;
     private static readonly string[] words =
     {
@@ -60,7 +60,7 @@ public class NameChanger : MonoBehaviour
             buttons[x].OnInteract += delegate
             {
                 MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttons[y].transform);
-                if (!solved)
+                if (!solved && chosenLetter != -1)
                 {
                     switch (y)
                     {
@@ -86,7 +86,7 @@ public class NameChanger : MonoBehaviour
         submitBtn.OnInteract += delegate
         {
             MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, submitBtn.transform);
-            if (!solved)
+            if (!solved && chosenLetter != -1)
                 HandleSubmit();
             return false;
         };
@@ -111,11 +111,13 @@ public class NameChanger : MonoBehaviour
 
     void GenerateSolution()
     {
-        chosenLetter = (startingWord + bomb.GetIndicators().Count()) % 10;
-        Debug.LogFormat("[Name Changer #{0}] The letter to choose is the {1} letter.", moduleId, new[] { 0, 1, 2 }.Contains(chosenLetter) ? new[] { "1st", "2nd", "3rd" }[chosenLetter] : ((chosenLetter + 1).ToString() + "th"));
+        chosenWord = (startingWord + 1 + bomb.GetPortCount());
+        while (chosenWord > 24)
+            chosenWord -= 24;
+        Debug.LogFormat("[Name Changer #{0}] The target word to choose is {1}, at position {2} on the table in reading order.", moduleId, words[chosenWord - 1], chosenWord);
 
-        chosenWord = (startingWord + bomb.GetPortCount()) % 24;
-        Debug.LogFormat("[Name Changer #{0}] The target word to choose is {1}, which is in position {2} on the table in reading order.", moduleId, words[chosenWord], chosenWord + 1);
+        chosenLetter = ((startingWord + 1 + bomb.GetIndicators().Count()) % 10) + 1;
+        Debug.LogFormat("[Name Changer #{0}] The letter to choose is the {1} letter.", moduleId, new[] { 0, 1, 2 }.Contains(chosenLetter - 1) ? new[] { "1st", "2nd", "3rd" }[chosenLetter - 1] : (chosenLetter.ToString() + "th"));
     }
 
     void Activation()
@@ -173,7 +175,7 @@ public class NameChanger : MonoBehaviour
             Debug.LogFormat("[Name Changer #{0}] Attempting to submit on the word: {1}", moduleId, highlightedWord);
             Debug.LogFormat("[Name Changer #{0}] Attempting to submit the following letter from the word: {1} ({2} letter)", moduleId, s, new[] { 0, 1, 2 }.Contains(currentLetter) ? new[] { "1st", "2nd", "3rd" }[currentLetter] : ((currentLetter + 1).ToString() + "th"));
 
-            if (chosenLetter == currentLetter && chosenWord == currentWord)
+            if ((chosenLetter - 1) == currentLetter && (chosenWord - 1) == currentWord)
                 Correct();
             else
                 Incorrect();
@@ -197,7 +199,7 @@ public class NameChanger : MonoBehaviour
 
     void Incorrect()
     {
-        Debug.LogFormat("[Name Changer #{0}] The letter deleted is incorrect!", moduleId);
+        Debug.LogFormat("[Name Changer #{0}] The letter chosen is incorrect!", moduleId);
         module.HandleStrike();
     }
 
@@ -229,10 +231,13 @@ public class NameChanger : MonoBehaviour
                 yield return string.Format("sendtochaterror The module does not want to accept \"{0}\" as a valid number of times to press.", splittedParts[1]);
                 yield break;
             }
+            yield return null;
             for (int x = 0; x < timesToPress; x++)
             {
-                yield return null;
+                if ((buttons[0] == curSelected && currentLetter == 0) || (buttons[1] == curSelected && currentLetter == 9) || (buttons[2] == curSelected && currentWord == 0) || (buttons[3] == curSelected && currentWord == 23))
+                    yield break;
                 curSelected.OnInteract();
+                yield return new WaitForSeconds(.1f);
             }
         }
         else if (Regex.IsMatch(command, @"^submit$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
@@ -260,23 +265,26 @@ public class NameChanger : MonoBehaviour
     IEnumerator TwitchHandleForcedSolve()
     {
         auto = true;
+        yield return null;
 
-        while (currentWord != chosenWord)
+        while (chosenLetter == -1) yield return true;
+        
+        while (currentWord != (chosenWord - 1))
         {
-            yield return null;
-            if (currentWord > chosenWord)
+            if (currentWord > (chosenWord - 1))
                 buttons[2].OnInteract();
             else
                 buttons[3].OnInteract();
+            yield return new WaitForSeconds(.1f);
         }
 
-        while (currentLetter != chosenLetter)
+        while (currentLetter != (chosenLetter - 1))
         {
-            yield return null;
-            if (currentLetter > chosenLetter)
+            if (currentLetter > (chosenLetter - 1))
                 buttons[0].OnInteract();
             else
                 buttons[1].OnInteract();
+            yield return new WaitForSeconds(.1f);
         }
         submitBtn.OnInteract();
     }
