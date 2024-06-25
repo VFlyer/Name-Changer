@@ -204,12 +204,12 @@ public class NameChanger : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = "!{0} left/right/up/down 3 [press the specified button that many times] | !{0} submit [submit the selected letter] | !{0} reset/restart [go back to the initial letter and word]";
+    private readonly string TwitchHelpMessage = "!{0} left/right/up/down 3 [press the specified button that many times; append \"slow\", \"slower\", \"fast\", \"faster\" to adjust speed of presses] | !{0} submit [submit the selected letter] | !{0} reset/restart [go back to the initial letter and word]";
 #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
     {
-        if (Regex.IsMatch(command, @"^(l(eft)?|r(ight)?|u(p)?|d(own)?)\s\d+$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        if (Regex.IsMatch(command, @"^(l(eft)?|r(ight)?|u(p)?|d(own)?)\s\d+(\s(slow|fast)(er)?)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
             string[] splittedParts = command.ToLowerInvariant().Split();
             Dictionary<char, KMSelectable> directionsToButtons = new Dictionary<char, KMSelectable>() {
@@ -231,13 +231,24 @@ public class NameChanger : MonoBehaviour
                 yield return string.Format("sendtochaterror The module does not want to accept \"{0}\" as a valid number of times to press.", splittedParts[1]);
                 yield break;
             }
+            float pressSpeed = 0.5f;
+            if (splittedParts.Length == 3)
+            {
+                switch (splittedParts[2])
+                {
+                    case "faster": pressSpeed = 0.1f; break;
+                    case "fast": pressSpeed = 0.2f; break;
+                    case "slower": pressSpeed = 2f; break;
+                    case "slow": pressSpeed = 1f; break;
+                }
+            }
             yield return null;
             for (int x = 0; x < timesToPress; x++)
             {
                 if ((buttons[0] == curSelected && currentLetter == 0) || (buttons[1] == curSelected && currentLetter == 9) || (buttons[2] == curSelected && currentWord == 0) || (buttons[3] == curSelected && currentWord == 23))
                     yield break;
                 curSelected.OnInteract();
-                yield return new WaitForSeconds(.1f);
+                yield return new WaitForSeconds(pressSpeed);
             }
         }
         else if (Regex.IsMatch(command, @"^submit$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
